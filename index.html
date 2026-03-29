@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camila Sequeira Nails | Unhas de Luxo</title>
+    
+    <!-- Tailwind CSS para Estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- React e Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-900">
+    <div id="root"></div>
+
+    <!-- Scripts do Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // Preencha com as suas credenciais do Firebase quando for publicar
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_PROJETO.firebaseapp.com",
+            projectId: "SEU_PROJETO",
+            storageBucket: "SEU_PROJETO.appspot.com",
+            messagingSenderId: "SEU_ID",
+            appId: "SEU_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.fb = { auth, db, addDoc, collection, signInAnonymously };
+    </script>
+
+    <!-- Componente Principal em JSX -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const CONTENT = {
+            name: 'Camila Sequeira',
+            subName: 'Nails',
+            whatsapp: '21 97321-0034',
+            whatsappRaw: '5521973210034',
+            address: 'R. Salvatori, 1679',
+            hero: {
+                title: 'A Arte de Cuidar das Suas Mãos',
+                subtitle: 'Especialista em alongamentos e cuidados que elevam sua autoestima. Viva a experiência de unhas impecáveis com um toque de ouro e sofisticação. Minha meta é deixar você se achando.',
+                // Imagem que você anexou
+                img: '2024-12-12.jpg' 
+            },
+            services: [
+                { 
+                    title: 'Alongamento em Gel', 
+                    price: 'Sob Consulta', 
+                    desc: 'Extensão com aspecto natural e resistência duradoura.',
+                    bgImg: 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?auto=format&fit=crop&q=80'
+                },
+                { 
+                    title: 'Blindagem de Unhas', 
+                    price: 'R$ 80', 
+                    desc: 'Camada de proteção que evita quebras e ajuda no crescimento.',
+                    bgImg: 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?auto=format&fit=crop&q=80'
+                },
+                { 
+                    title: 'Manicure & Pedicure', 
+                    price: 'R$ 50', 
+                    desc: 'Cuidado completo com cutilagem e esmaltação impecável.',
+                    bgImg: 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&q=80'
+                },
+                { 
+                    title: 'Nail Art Luxo', 
+                    price: 'A partir R$ 10', 
+                    desc: 'Arte feita à mão e pedrarias.',
+                    bgImg: 'https://images.unsplash.com/photo-1604902396830-aca29e19b067?auto=format&fit=crop&q=80'
+                }
+            ],
+            cta: 'Agendar Horário'
+        };
+
+        function App() {
+            const [status, setStatus] = useState('');
+            const [formData, setFormData] = useState({ name: '', phone: '', interest: '' });
+
+            useEffect(() => {
+                lucide.createIcons();
+            }, []);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setStatus('Abrindo WhatsApp...');
+
+                const text = `Olá Camila! Meu nome é ${formData.name}. Gostaria de agendar um horário para: ${formData.interest || 'Serviço a combinar'}. Meu contato é ${formData.phone}.`;
+                const whatsappUrl = `https://wa.me/${CONTENT.whatsappRaw}?text=${encodeURIComponent(text)}`;
+
+                try {
+                    if (window.fb && window.fb.auth) {
+                        await window.fb.signInAnonymously(window.fb.auth);
+                        await window.fb.addDoc(window.fb.collection(window.fb.db, 'leads'), {
+                            ...formData,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                    window.open(whatsappUrl, '_blank');
+                    setStatus('Verifique seu WhatsApp!');
+                    setFormData({ name: '', phone: '', interest: '' });
+                } catch (err) {
+                    window.open(whatsappUrl, '_blank');
+                    setStatus('Redirecionando...');
+                }
+            };
+
+            return (
+                <div className="min-h-screen">
+                    <nav className="fixed w-full z-40 border-b border-stone-200 bg-white/90 backdrop-blur-md">
+                        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-2xl font-black uppercase tracking-tighter">
+                                <span className="text-amber-600">{CONTENT.name}</span>
+                                <span className="text-stone-400 font-light">{CONTENT.subName}</span>
+                            </div>
+                            <div className="hidden md:flex items-center gap-10 text-sm font-bold uppercase tracking-widest">
+                                <a href="#servicos" className="hover:text-amber-600 transition-colors">Serviços</a>
+                                <a href="#contato" className="px-6 py-3 rounded-full text-white bg-amber-500 hover:bg-amber-600 transition-all shadow-lg">
+                                    {CONTENT.cta}
+                                </a>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <header className="relative pt-40 pb-20 overflow-hidden bg-stone-50">
+                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+                            <div className="space-y-8 animate-in slide-in-from-left-10 duration-700">
+                                <div className="inline-block px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-amber-100 text-amber-700">
+                                    Trabalho Autoral
+                                </div>
+                                <h1 className="text-5xl md:text-7xl font-black leading-tight text-stone-900">
+                                    {CONTENT.hero.title}
+                                </h1>
+                                <p className="text-xl text-stone-600 leading-relaxed max-w-lg">
+                                    {CONTENT.hero.subtitle}
+                                </p>
+                                <a href="#contato" className="inline-flex px-10 py-5 rounded-2xl text-white bg-amber-500 hover:bg-amber-600 font-bold text-lg shadow-xl transition-all hover:scale-105 active:scale-95">
+                                    {CONTENT.cta}
+                                </a>
+                            </div>
+                            <div className="relative group">
+                                <div className="absolute -inset-4 bg-amber-500/20 blur-2xl rounded-[3.5rem] group-hover:bg-amber-500/30 transition-all duration-500"></div>
+                                <div className="relative overflow-hidden rounded-[3rem] shadow-2xl border-4 border-white">
+                                    <img 
+                                        src={CONTENT.hero.img} 
+                                        className="w-full aspect-[3/4] object-cover transition-transform duration-700 group-hover:scale-105" 
+                                        alt="Unhas feitas por Camila Sequeira" 
+                                        onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&q=80' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <section id="servicos" className="py-24 bg-white">
+                        <div className="max-w-7xl mx-auto px-6">
+                            <h2 className="text-4xl font-black uppercase mb-16 tracking-tighter text-center">Menu de Cuidados</h2>
+                            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                                {CONTENT.services.map((s, i) => (
+                                    <div key={i} className="relative p-8 rounded-[2.5rem] bg-stone-50 border border-stone-100 hover:shadow-2xl hover:bg-white transition-all group overflow-hidden">
+                                        <div 
+                                            className="absolute inset-0 z-0 opacity-[0.08] group-hover:opacity-[0.15] transition-opacity duration-500"
+                                            style={{ 
+                                                backgroundImage: `url(${s.bgImg})`,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center'
+                                            }}
+                                        ></div>
+                                        <div className="relative z-10">
+                                            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-6 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                                                <i data-lucide="check-circle"></i>
+                                            </div>
+                                            <h4 className="text-xl font-black mb-2 uppercase tracking-tight">{s.title}</h4>
+                                            <p className="text-amber-600 font-bold mb-4">{s.price}</p>
+                                            <p className="text-stone-500 text-sm leading-relaxed">{s.desc}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="contato" className="py-24 bg-stone-900 text-white">
+                        <div className="max-w-6xl mx-auto px-6">
+                            <div className="grid md:grid-cols-2 gap-20 items-center">
+                                <div className="space-y-12 text-left">
+                                    <h2 className="text-5xl font-black uppercase leading-tight tracking-tighter">Pronta para<br/><span className="text-amber-500">Brilhar?</span></h2>
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center"><i data-lucide="map-pin"></i></div>
+                                            <div>
+                                                <p className="text-xs font-bold text-amber-500 uppercase tracking-widest">Atendimento em:</p>
+                                                <p className="text-xl font-bold">{CONTENT.address}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center"><i data-lucide="phone"></i></div>
+                                            <div>
+                                                <p className="text-xs font-bold text-amber-500 uppercase tracking-widest">Dúvidas?</p>
+                                                <p className="text-xl font-bold">{CONTENT.whatsapp}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-stone-900">
+                                    <h3 className="text-2xl font-black mb-8 uppercase text-center">Falar com Camila</h3>
+                                    <form onSubmit={handleSubmit} className="space-y-4">
+                                        <input 
+                                            type="text" 
+                                            placeholder="Seu Nome Completo" 
+                                            className="w-full p-5 rounded-2xl bg-stone-50 border border-stone-100 outline-none focus:ring-4 focus:ring-amber-500/20 transition-all" 
+                                            value={formData.name}
+                                            onChange={e => setFormData({...formData, name: e.target.value})}
+                                            required 
+                                        />
+                                        <input 
+                                            type="tel" 
+                                            placeholder="WhatsApp (com DDD)" 
+                                            className="w-full p-5 rounded-2xl bg-stone-50 border border-stone-100 outline-none focus:ring-4 focus:ring-amber-500/20 transition-all" 
+                                            value={formData.phone}
+                                            onChange={e => setFormData({...formData, phone: e.target.value})}
+                                            required 
+                                        />
+                                        <select 
+                                            className="w-full p-5 rounded-2xl bg-stone-50 border border-stone-100 outline-none focus:ring-4 focus:ring-amber-500/20 transition-all text-stone-500"
+                                            value={formData.interest}
+                                            onChange={e => setFormData({...formData, interest: e.target.value})}
+                                            required
+                                        >
+                                            <option value="">O que você deseja hoje?</option>
+                                            {CONTENT.services.map((s, i) => (
+                                                <option key={i} value={s.title}>{s.title}</option>
+                                            ))}
+                                        </select>
+                                        <button className="w-full py-5 rounded-2xl bg-amber-500 text-white font-black uppercase tracking-widest hover:bg-amber-600 transition-all shadow-xl shadow-amber-200">
+                                            {status || 'Combinar no WhatsApp'}
+                                        </button>
+                                        <p className="text-[10px] text-center text-stone-400 uppercase font-bold mt-2">Agendamento direto e rápido via chat.</p>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
